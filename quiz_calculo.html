@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Conceptual de Matemáticas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #10b981;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .screen {
+            display: none;
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .options {
+            display: grid;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (min-width: 640px) {
+            .options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .option {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f9ff;
+        }
+
+        .option.selected {
+            border-color: var(--primary-color);
+            background-color: #e0f2fe;
+        }
+
+        .hint-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0fdf4;
+            border-radius: 0.5rem;
+            border: 1px solid var(--secondary-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background-color: var(--border-color);
+            border-radius: 0.25rem;
+            margin: 1rem 0;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        #hintBtn {
+            background-color: var(--secondary-color);
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de inicio -->
+        <div id="startScreen" class="screen active">
+            <h1>Interpretación Conceptual de Funciones y Derivadas</h1>
+            <h2>Preguntas de opción múltiple • Conceptos de funciones y límites</h2>
+            <p>Este quiz se enfoca en verificar la comprensión conceptual de los principios de límites, continuidad, y derivabilidad, incluyendo interpretación gráfica y análisis de comportamiento de funciones.</p>
+            <button class="btn" onclick="startQuiz()">Comenzar Quiz</button>
+        </div>
+
+        <!-- Pantalla de preguntas -->
+        <div id="quizScreen" class="screen">
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
+            </div>
+            <h2 id="questionText"></h2>
+            <div id="options" class="options"></div>
+            <button id="hintBtn" class="btn" onclick="showHint()">Mostrar Pista</button>
+            <div id="hintContainer" class="hint-container" style="display: none;"></div>
+        </div>
+
+        <!-- Pantalla de resultados -->
+        <div id="resultsScreen" class="screen">
+            <h1>Resultados del Quiz</h1>
+            <h2 id="score"></h2>
+            <p id="feedback"></p>
+            <button class="btn" onclick="restartQuiz()">Intentar de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de MathJax
+        MathJax.Hub.Config({
+            tex2jax: { inlineMath: [['\\(', '\\)']] }
+        });
+
+        const questions = [
+            {
+                question: "¿Qué significa que una función sea continua en un punto \\( x = a \\)?",
+                options: [
+                    "La función debe ser diferenciable en \\( x = a \\)",
+                    "La función está definida en \\( x = a \\) y su límite coincide con su valor en ese punto",
+                    "La función presenta un valor infinito en \\( x = a \\)",
+                    "La función solo tiene una pendiente definida en \\( x = a \\)"
+                ],
+                correct: 1,
+                hints: [
+                    "Piensa en los tres requisitos básicos para la continuidad",
+                    "La diferenciabilidad implica continuidad, pero no al revés",
+                    "Un valor infinito generalmente indica una discontinuidad",
+                    "La pendiente está relacionada con la derivada, no con la continuidad directamente"
+                ]
+            },
+            {
+                question: "Si se sabe que la primera derivada de una función \\( f'(x) \\) es positiva en un intervalo, ¿qué podemos decir sobre el comportamiento de \\( f(x) \\) en ese intervalo?",
+                options: [
+                    "\\( f(x) \\) es creciente en dicho intervalo",
+                    "\\( f(x) \\) es decreciente en dicho intervalo",
+                    "\\( f(x) \\) es constante en dicho intervalo",
+                    "\\( f(x) \\) tiene una asíntota horizontal en dicho intervalo"
+                ],
+                correct: 0,
+                hints: [
+                    "La derivada representa la tasa de cambio instantánea",
+                    "Una derivada positiva indica que la pendiente es positiva",
+                    "Piensa en la relación entre el signo de la derivada y la pendiente",
+                    "Las asíntotas están relacionadas con el comportamiento en el infinito"
+                ]
+            },
+            {
+    question: "¿Cuál es el límite de \\( \\frac{\\sin(x)}{x} \\) cuando \\( x \\to 0 \\)?",
+    options: [
+        "El límite es 0",
+        "El límite no existe",
+        "El límite es 1",
+        "El límite es infinito"
+    ],
+    correct: 2,
+    hints: [
+        "Este límite se conoce como un límite notable en cálculo",
+        "El valor se obtiene aplicando la definición de límite en el entorno de \\( x = 0 \\)"
+    ]
+},
+{
+    question: "Si \\( f(x) \\) es derivable en \\( x = a \\), ¿qué podemos afirmar sobre su continuidad en \\( x = a \\)?",
+    options: [
+        "\\( f(x) \\) no es continua en \\( x = a \\)",
+        "\\( f(x) \\) es continua en \\( x = a \\)",
+        "No se puede asegurar la continuidad de \\( f(x) \\) en \\( x = a \\)",
+        "No está relacionada con la derivabilidad"
+    ],
+    correct: 1,
+    hints: [
+        "Recuerda que la derivabilidad implica continuidad",
+        "No toda función continua es derivable, pero sí viceversa"
+    ]
+},
+{
+    question: "¿Cuál es la interpretación geométrica de la derivada de una función en un punto?",
+    options: [
+        "Es el área bajo la curva en ese punto",
+        "Es el valor de la función en ese punto",
+        "Es la pendiente de la tangente a la curva en ese punto",
+        "Es la altura máxima de la curva en ese punto"
+    ],
+    correct: 2,
+    hints: [
+        "La derivada mide la tasa de cambio instantánea",
+        "La pendiente de la tangente refleja la inclinación en un punto"
+    ]
+},
+{
+    question: "¿Qué representa el segundo derivado \\( f''(x) \\) de una función \\( f(x) \\)?",
+    options: [
+        "La tasa de cambio de \\( f(x) \\)",
+        "La concavidad de \\( f(x) \\)",
+        "El valor de \\( f(x) \\)",
+        "El área bajo \\( f(x) \\)"
+    ],
+    correct: 1,
+    hints: [
+        "El segundo derivado se relaciona con la curvatura de la gráfica",
+        "Concavidad y puntos de inflexión están relacionados con \\( f''(x) \\)"
+    ]
+},
+{
+    question: "¿Cuál es el criterio para determinar si un punto crítico es un máximo o mínimo usando la segunda derivada?",
+    options: [
+        "Si \\( f'(x) > 0 \\), es un mínimo",
+        "Si \\( f''(x) > 0 \\), es un mínimo",
+        "Si \\( f'(x) < 0 \\), es un máximo",
+        "Si \\( f(x) = 0 \\), es un mínimo"
+    ],
+    correct: 1,
+    hints: [
+        "La segunda derivada indica si el punto es un mínimo o máximo local",
+        "Si \\( f''(x) > 0 \\), la función tiene una concavidad hacia arriba en el punto"
+    ]
+},
+{
+    question: "¿Qué es un punto de inflexión en una función \\( f(x) \\)?",
+    options: [
+        "Donde \\( f(x) \\) es máximo",
+        "Donde \\( f(x) \\) cambia de ser cóncava a convexa o viceversa",
+        "Donde \\( f(x) \\) es mínima",
+        "Donde \\( f(x) \\) tiene una pendiente infinita"
+    ],
+    correct: 1,
+    hints: [
+        "Un cambio en la concavidad suele indicar un punto de inflexión",
+        "La segunda derivada cambia de signo en estos puntos"
+    ]
+},
+{
+    question: "¿Cuál es el significado del límite \\( \\lim_{x \\to \\infty} f(x) \\)?",
+    options: [
+        "El valor de \\( f(x) \\) en el infinito",
+        "El comportamiento de \\( f(x) \\) conforme \\( x \\) crece indefinidamente",
+        "El mínimo de \\( f(x) \\)",
+        "El valor exacto de \\( f(x) \\) en un punto"
+    ],
+    correct: 1,
+    hints: [
+        "Piensa en el comportamiento de \\( f(x) \\) cuando \\( x \\) es muy grande",
+        "El límite al infinito indica una tendencia, no un valor fijo"
+    ]
+},
+{
+    question: "Si \\( f(x) \\) es creciente en un intervalo, ¿qué podemos decir sobre \\( f'(x) \\) en ese intervalo?",
+    options: [
+        "\\( f'(x) > 0 \\)",
+        "\\( f'(x) < 0 \\)",
+        "\\( f'(x) = 0 \\)",
+        "No se puede determinar"
+    ],
+    correct: 0,
+    hints: [
+        "Una función creciente tiene una pendiente positiva",
+        "Recuerda que la derivada refleja la pendiente de \\( f(x) \\)"
+    ]
+},
+{
+    question: "¿Qué sucede con una función cuando su derivada es cero en un punto?",
+    options: [
+        "La función alcanza un máximo o mínimo en ese punto",
+        "La función es discontinua en ese punto",
+        "La función es constante en todo su dominio",
+        "El punto siempre es un punto de inflexión"
+    ],
+    correct: 0,
+    hints: [
+        "Una derivada cero en un punto indica un posible extremo local",
+        "No siempre es un máximo o mínimo, pero es un punto crítico"
+    ]
+},
+{
+    question: "¿Cuál es la derivada de una constante?",
+    options: [
+        "1",
+        "0",
+        "La misma constante",
+        "Infinito"
+    ],
+    correct: 1,
+    hints: [
+        "La derivada mide el cambio; una constante no cambia",
+        "Piensa en qué significa el concepto de tasa de cambio para un valor constante"
+    ]
+},
+{
+    question: "Si \\( f'(x) = 0 \\) en todo su dominio, ¿qué podemos concluir sobre \\( f(x) \\)?",
+    options: [
+        "\\( f(x) \\) es una función lineal",
+        "\\( f(x) \\) es constante",
+        "\\( f(x) \\) es creciente",
+        "\\( f(x) \\) es decreciente"
+    ],
+    correct: 1,
+    hints: [
+        "Una derivada cero en todo el dominio implica que no hay cambio en \\( f(x) \\)",
+        "Una función constante tiene una pendiente de cero en todo su dominio"
+    ]
+},
+
+{
+        question: "¿Cuál es la interpretación geométrica del Teorema del Valor Medio de Lagrange?",
+        options: [
+            "Existe un punto donde la tangente es perpendicular al eje x",
+            "Existe un punto donde la función es máxima",
+            "Existe un punto donde la tangente es paralela a la recta secante que une los extremos del intervalo",
+            "Existe un punto donde la función es continua"
+        ],
+        correct: 2,
+        hints: [
+            "Piensa en la pendiente media entre los puntos extremos",
+            "La derivada en el punto c representa una pendiente instantánea"
+        ]
+    },
+    {
+        question: "Si una función \\(f\\) cumple las hipótesis del Teorema de Rolle en [a,b], ¿cuál de las siguientes condiciones NO es necesaria?",
+        options: [
+            "\\(f\\) es continua en [a,b]",
+            "\\(f\\) es derivable en (a,b)",
+            "\\(f(a) = f(b)\\)",
+            "\\(f\\) es creciente en [a,b]"
+        ],
+        correct: 3,
+        hints: [
+            "El teorema de Rolle habla sobre la existencia de un punto donde la derivada es cero",
+            "La monotonía de la función no es relevante para el teorema"
+        ]
+    },
+    {
+        question: "¿Qué establece el Teorema de Darboux sobre la derivada de una función continua?",
+        options: [
+            "La derivada tiene máximo y mínimo en el intervalo",
+            "La derivada toma todos los valores intermedios entre dos valores cualesquiera",
+            "La derivada es siempre continua",
+            "La derivada es siempre positiva"
+        ],
+        correct: 1,
+        hints: [
+            "También se conoce como el teorema del valor intermedio para derivadas",
+            "Piensa en la continuidad de la función derivada"
+        ]
+    },
+    {
+        question: "En el Teorema de Bolzano, si \\(f(a) < 0\\) y \\(f(b) > 0\\), entonces:",
+        options: [
+            "\\(f\\) es creciente en [a,b]",
+            "\\(f\\) alcanza un máximo en (a,b)",
+            "\\(f\\) tiene un punto de inflexión en (a,b)",
+            "\\(f\\) tiene un cero en (a,b)"
+        ],
+        correct: 3,
+        hints: [
+            "El teorema habla sobre el cambio de signo",
+            "La continuidad garantiza la existencia de cierto valor"
+        ]
+    },
+    {
+        question: "Al aplicar la regla de la cadena a \\(h(x) = f(g(x))\\), ¿qué condición NO es necesaria?",
+        options: [
+            "\\(g\\) debe ser derivable en \\(x\\)",
+            "\\(f\\) debe ser derivable en \\(g(x)\\)",
+            "\\(g\\) debe ser continua en \\(x\\)",
+            "\\(f\\) debe ser continua en todo su dominio"
+        ],
+        correct: 3,
+        hints: [
+            "Solo necesitamos derivabilidad local",
+            "La continuidad global no es necesaria para la derivación"
+        ]
+    },
+    {
+        question: "Si aplicamos la regla del producto a \\(\\frac{d}{dx}(x^2 \\sin x)\\), ¿cuál es el resultado correcto?",
+        options: [
+            "\\(2x \\sin x\\)",
+            "\\(x^2 \\cos x\\)",
+            "\\(2x \\sin x + x^2 \\cos x\\)",
+            "\\(2x \\cos x + x^2 \\sin x\\)"
+        ],
+        correct: 2,
+        hints: [
+            "Recuerda: \\(\\frac{d}{dx}(u\\cdot v) = u'v + uv'\\)",
+            "\\(\\frac{d}{dx}(\\sin x) = \\cos x\\)"
+        ]
+    },
+    {
+        question: "En la regla del cociente, \\(\\frac{d}{dx}\\left(\\frac{f(x)}{g(x)}\\right)\\), ¿qué condición debe cumplirse?",
+        options: [
+            "\\(f(x)\\) debe ser positiva",
+            "\\(g(x)\\) debe ser positiva",
+            "\\(g(x)\\) debe ser distinta de cero",
+            "\\(f(x)\\) debe ser mayor que \\(g(x)\\)"
+        ],
+        correct: 2,
+        hints: [
+            "Piensa en cuándo está definido un cociente",
+            "La división por cero no está definida"
+        ]
+    },
+    {
+        question: "¿Cuál es la consecuencia del Teorema del Valor Medio si \\(f'(x) = 0\\) en todo un intervalo?",
+        options: [
+            "\\(f\\) es decreciente en el intervalo",
+            "\\(f\\) es constante en el intervalo",
+            "\\(f\\) es creciente en el intervalo",
+            "\\(f\\) tiene un máximo en el intervalo"
+        ],
+        correct: 1,
+        hints: [
+            "Si la derivada es cero, ¿qué significa esto para la pendiente?",
+            "Una pendiente cero en todo punto implica cierto comportamiento"
+        ]
+    },
+    {
+        question: "Al aplicar la regla de la potencia a \\(\\frac{d}{dx}(x^n)\\), donde \\(n\\) es racional, ¿cuál es el exponente resultante?",
+        options: [
+            "\\(n+1\\)",
+            "\\(n-1\\)",
+            "\\(\\frac{n}{2}\\)",
+            "\\(2n\\)"
+        ],
+        correct: 1,
+        hints: [
+            "La regla de la potencia reduce el exponente",
+            "El coeficiente está relacionado con el exponente original"
+        ]
+    },
+    {
+        question: "Si una función satisface las hipótesis del Teorema de Rolle en [a,b] y además es dos veces derivable, ¿qué podemos afirmar si \\(f''(x) > 0\\) en (a,b)?",
+        options: [
+            "\\(f\\) tiene exactamente un punto crítico en (a,b)",
+            "\\(f\\) tiene al menos dos puntos críticos en (a,b)",
+            "\\(f\\) no tiene puntos críticos en (a,b)",
+            "\\(f\\) tiene infinitos puntos críticos en (a,b)"
+        ],
+        correct: 0,
+        hints: [
+            "La segunda derivada positiva indica concavidad hacia arriba",
+            "Considera cómo esto afecta al número de puntos donde f'(x) = 0"
+        ]
+    },
+
+{
+    question: "¿Qué significa que el límite \\( \\lim_{x \\to a^-} f(x) \\neq \\lim_{x \\to a^+} f(x) \\)?",
+    options: [
+        "La función tiene una discontinuidad en \\( x = a \\)",
+        "La función es continua en \\( x = a \\)",
+        "La función es diferenciable en \\( x = a \\)",
+        "La función tiene un valor finito en \\( x = a \\)"
+    ],
+    correct: 0,
+    hints: [
+        "Una diferencia en los límites laterales suele indicar una discontinuidad",
+        "Para que la función sea continua, ambos límites laterales deben coincidir"
+    ]
+},
+{
+    question: "¿Cuál es la derivada de \\( e^x \\)?",
+    options: [
+        "\\( e \\)",
+        "\\( x \\cdot e^{x-1} \\)",
+        "\\( e^x \\)",
+        "\\( x \\)"
+    ],
+    correct: 2,
+    hints: [
+        "La derivada de \\( e^x \\) tiene una propiedad única entre las exponenciales",
+        "Piensa en cómo \\( e^x \\) se comporta al derivarse respecto a \\( x \\)"
+    ]
+},
+{
+    question: "¿Qué indica una derivada segunda negativa \\( f''(x) < 0 \\) en un intervalo?",
+    options: [
+        "\\( f(x) \\) es cóncava hacia arriba en ese intervalo",
+        "\\( f(x) \\) es cóncava hacia abajo en ese intervalo",
+        "\\( f(x) \\) es constante en ese intervalo",
+        "\\( f(x) \\) tiene un punto de inflexión en ese intervalo"
+    ],
+    correct: 1,
+    hints: [
+        "La concavidad hacia abajo es característica de \\( f''(x) < 0 \\)",
+        "La segunda derivada negativa indica una curvatura hacia abajo"
+    ]
+}
+
+
+
+
+
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let currentHint = 0;
+
+        function startQuiz() {
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionText').innerHTML = question.question;
+            document.getElementById('progress').style.width = `${(currentQuestion / questions.length) * 100}%`;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.innerHTML = option;
+                optionDiv.onclick = () => {
+                    selectOption(index);
+                    nextQuestion();
+                };
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            // Renderizar matemáticas
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            
+            document.getElementById('hintContainer').style.display = 'none';
+            currentHint = 0;
+            selectedOption = null;
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+            options[index].classList.add('selected');
+            selectedOption = index;
+        }
+
+        function showHint() {
+            const question = questions[currentQuestion];
+            if (currentHint < question.hints.length) {
+                const hintContainer = document.getElementById('hintContainer');
+                hintContainer.style.display = 'block';
+                hintContainer.innerHTML = question.hints[currentHint];
+                currentHint++;
+            }
+        }
+
+        function nextQuestion() {
+            if (selectedOption !== null) {
+                if (selectedOption === questions[currentQuestion].correct) {
+                    score++;
+                }
+                
+                currentQuestion++;
+                
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+            } else {
+                alert('Por favor selecciona una opción');
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+            
+            const scoreElement = document.getElementById('score');
+            const feedbackElement = document.getElementById('feedback');
+            
+            scoreElement.textContent = `Puntuación: ${score} de ${questions.length}`;
+            
+            if (score >= questions.length * 0.8) {
+                feedbackElement.textContent = "¡Excelente! Tienes una comprensión sólida de los conceptos fundamentales de límites, continuidad y derivabilidad.";
+            } else if (score >= questions.length * 0.6) {
+                feedbackElement.textContent = "Buen trabajo, aunque algunos conceptos podrían revisarse para mayor comprensión.";
+            } else {
+                feedbackElement.textContent = "Parece que algunos conceptos necesitan refuerzo. Revisar estos temas te ayudará a fortalecer tu comprensión.";
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = null;
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('startScreen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
